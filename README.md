@@ -1,4 +1,4 @@
-## [Swagger API](https://app.swaggerhub.com/apis-docs/ESLAMALSAYED8133/approval_chain/1.0.0)
+## [Swagger API documentation](https://app.swaggerhub.com/apis-docs/ESLAMALSAYED8133/approval_chain/1.0.0)
 
 # Approval Management System
 
