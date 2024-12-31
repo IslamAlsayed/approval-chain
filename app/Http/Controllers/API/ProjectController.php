@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Models\Admin;
 use App\Models\Approval;
 use App\Models\Project;
 use Illuminate\Http\Request;
@@ -11,19 +12,13 @@ class ProjectController extends Controller
 {
     public function index($role)
     {
-        $roleIntval = intval(preg_replace('/\D/', '', $role));
-        $approvals = Approval::with('project')->where('approved', '!=', 1)->where('sequence', $roleIntval)->get();
+        $approvals = Approval::with('project')->where('approved', '!=', 1)->where('sequence', $role)->get();
 
         if ($approvals->isEmpty()) {
             return response()->json(['status' => 404, 'message' => 'no projects found.'], 404);
         }
 
         return response()->json(['status' => 200, 'result' => $approvals], 200);
-    }
-
-    public function create()
-    {
-        return view('approvals.create');
     }
 
     public function store(Request $request)
@@ -35,7 +30,7 @@ class ProjectController extends Controller
             return response()->json(['status' => 201, 'result' => $project, 'message' => 'Project created successfully.'], 201);
         }
 
-        return response()->json(['status' => 201, 'message' => 'Project created not successfully.'], 201);
+        return response()->json(['status' => 400, 'message' => 'Project created not successfully.'], 400);
     }
 
     public function completed()
@@ -65,12 +60,13 @@ class ProjectController extends Controller
     public function update($id)
     {
         $approval = Approval::with('project')->findOrFail($id);
+        $maxRole = Admin::max('role') + 1;
 
         if ($approval) {
-            if ($approval->sequence < 4) {
+            if ($approval->sequence < $maxRole) {
                 $approval->increment('sequence');
 
-                if ($approval->sequence == 4) {
+                if ($approval->sequence == $maxRole) {
                     $approval->update(['approved' => 1]);
 
                     $project = Project::find($approval->project_id);
@@ -89,11 +85,12 @@ class ProjectController extends Controller
     public function unapproved($id)
     {
         $approval = Approval::findOrFail($id);
+        $maxRole = Admin::max('role') + 1;
 
         if ($approval) {
             $approval->decrement('sequence');
 
-            if ($approval->sequence != 4) {
+            if ($approval->sequence != $maxRole) {
                 $approval->update(['approved' => 0]);
 
                 $project = Project::find($approval->project_id);

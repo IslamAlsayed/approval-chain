@@ -22,10 +22,11 @@
 
     <div style="width: 50%; margin: auto;">
         <ul>
+            <li><a href="/approve/admin/create">create admin</a></li>
             <li><a href="/approve/project/create">create project</a></li>
-            <li><a href="/approve/role/admin1">admin1</a></li>
-            <li><a href="/approve/role/admin2">admin2</a></li>
-            <li><a href="/approve/role/admin3">admin3</a></li>
+            @foreach ($admins as $admin)
+                <li><a href="/approve/role/{{ $admin->role }}">{{ $admin->name }}</a></li>
+            @endforeach
             <li><a href="/approve/completed">approved</a></li>
             <li><a href="/approve/trashed">trashed</a></li>
         </ul>
@@ -38,7 +39,7 @@
     @endif
 
     @if (session('error'))
-        <div style="width: 50%; margin: auto; margin-bottom: 20px; padding: 10px; border: 1px solid #d4edda; background-color: #d4edda; color: #155724;">
+        <div style="width: 50%; margin: auto; margin-bottom: 20px; padding: 10px; border: 1px solid #c73504; background-color: #ef4208; color: #ffffff;">
             {{ session('error') }}
         </div>
     @endif
@@ -60,7 +61,7 @@
                         <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">{{ $approval->project->title }}</td>
                         <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">{{ $approval->project->status }}</td>
                         <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">
-                            <form action="{{ route('approve.restore', $approval->id) }}" method="POST" style="display: inline;">
+                            <form action="{{ route('approve.restore', $approval->id) }}" method="PUT" style="display: inline;">
                                 @csrf
                                 <button type="submit" style="background-color: #0723f5; color: white; border: none; padding: 5px 10px; cursor: pointer;">restore</button>
                             </form>

@@ -4,21 +4,24 @@ namespace App\Http\Controllers;
 
 use App\Models\Approval;
 use App\Models\Project;
+use App\Models\Admin;
 use Illuminate\Http\Request;
 
 class ProjectController extends Controller
 {
     public function index($role)
     {
-        $roleIntval = intval(preg_replace('/\D/', '', $role));
-        $approvals = Approval::with('project')->where('approved', '!=', 1)->where('sequence', $roleIntval)->get();
+        $admin = Admin::find($role);
+        $admins = Admin::all();
+        $approvals = Approval::with('project')->where('approved', '!=', 1)->where('sequence', $role)->get();
 
-        return view('approvals.' . $role, compact('role', 'approvals'));
+        return view('approvals.data', compact('admin', 'admins', 'approvals'));
     }
 
     public function create()
     {
-        return view('approvals.create');
+        $admins = Admin::all();
+        return view('approvals.projectCreate', compact('admins'));
     }
 
     public function store(Request $request)
@@ -30,42 +33,37 @@ class ProjectController extends Controller
             return redirect()->back()->with('success', 'Project created successfully.');
         }
 
-        return redirect()->back()->with('success', 'Project created not successfully.');
+        return redirect()->back()->with('error', 'Project created not successfully.');
     }
 
     public function completed()
     {
+        $admins = Admin::all();
         $approvals = Approval::whereHas('project', function ($query) {
             $query->where('status', 'completed');
         })->with('project')->get();
 
-        if ($approvals->isEmpty()) {
-            return redirect()->back()->with('error', 'no projects found.');
-        }
-
-        return view('approvals.completed', compact('approvals'));
+        return view('approvals.completed', compact('admins', 'approvals'));
     }
 
     public function trashed()
     {
+        $admins = Admin::all();
         $approvals = Approval::onlyTrashed()->with('project')->get();
 
-        if ($approvals->isEmpty()) {
-            return redirect()->back()->with('error', 'no projects found.');
-        }
-
-        return view('approvals.trashed', compact('approvals'));
+        return view('approvals.trashed', compact('admins', 'approvals'));
     }
 
     public function update($id)
     {
         $approval = Approval::findOrFail($id);
+        $maxRole = Admin::max('role') + 1;
 
         if ($approval) {
-            if ($approval->sequence < 4) {
+            if ($approval->sequence < $maxRole) {
                 $approval->increment('sequence');
 
-                if ($approval->sequence == 4) {
+                if ($approval->sequence == $maxRole) {
                     $approval->update(['approved' => 1]);
 
                     $project = Project::find($approval->project_id);
@@ -84,11 +82,12 @@ class ProjectController extends Controller
     public function unapproved($id)
     {
         $approval = Approval::findOrFail($id);
+        $maxRole = Admin::max('role') + 1;
 
         if ($approval) {
             $approval->decrement('sequence');
 
-            if ($approval->sequence != 4) {
+            if ($approval->sequence != $maxRole) {
                 $approval->update(['approved' => 0]);
 
                 $project = Project::find($approval->project_id);

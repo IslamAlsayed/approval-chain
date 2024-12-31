@@ -7,17 +7,81 @@ servers:
   - description: SwaggerHub API Auto Mocking
     url: https://virtserver.swaggerhub.com/ESLAMALSAYED8133/approval_chain/1.0.0
 paths:
+  '/approve/admin/store':
+    post:
+      tags:
+        - admins
+      description: Create a new admin
+      operationId: storeAdmin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: 'admin4'
+      responses:
+        '201':
+          description: Admin created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 201
+                  result:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 4
+                      name:
+                        type: string
+                        example: 'admin4'
+                      role:
+                        type: integer
+                        example: 4
+                      created_at:
+                        type: string
+                        format: date-time
+                        example: '2024-01-01 01:45 PM'
+                      updated_at:
+                        type: string
+                        format: date-time
+                        example: '2024-01-01 01:45 PM'
+                  message:
+                    type: string
+                    example: 'Admin created successfully.'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 400
+                  message:
+                    type: string
+                    example: 'Admin not created successfully.'
+                    
   '/approve/role/{role}':
     get:
       tags:
         - projects
       description: Returns all projects in sequence for a specific role.
-      operationId: index
+      operationId: getProjectsByRole
       parameters:
         - in: path
           name: role
           required: true
-          description: Role to filter the approvals (e.g., admin1, admin2, admin3).
+          description: Role to filter the approvals (e.g., 1, 2, 3) [1 => admin1, 2 => admin2, ...].
           schema:
             type: string
       responses:
@@ -41,7 +105,7 @@ paths:
                       example: 1
                     approved:
                       type: boolean
-                      example: 0
+                      example: false
                     deleted_at:
                       type: string
                       format: date-time
@@ -259,7 +323,7 @@ paths:
                     example: 'Project not created successfully.'
 
   '/approve/update/{id}':
-    post:
+    put:
       tags:
         - projects
       description: Updates the approval sequence for a project.
@@ -327,7 +391,7 @@ paths:
                     example: 'Project is not found.'
 
   '/approve/restore/{id}':
-    post:
+    put:
       tags:
         - projects
       description: Restores a trashed project.
@@ -395,7 +459,7 @@ paths:
                     example: 'Project not found.'
 
   '/approve/unapproved/{id}':
-    post:
+    put:
       tags:
         - projects
       description: Unapprove a project, decreasing the approval sequence.
